@@ -13,7 +13,6 @@ LOG_FILE_NAME = 'logs/{ts}.log'.format(ts=TS)
 
 def log(text):
     ts = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-
     log = '[{ts}] {text}'.format(ts=ts, text=text)
 
     print(log)

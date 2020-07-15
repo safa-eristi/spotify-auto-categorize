@@ -29,12 +29,13 @@ current_user = None
 
 def main():
     logger.log('Start')
-    global current_user
     source_list = None
 
     restapi.authenticate()
 
+    global current_user
     current_user = restapi.get_user()
+
     users_playlists = restapi.get_playlists()
     for item in users_playlists['items']:
         if item['name'] in [playlist.get('name') for playlist in new_playlists.playlists]:
@@ -58,7 +59,6 @@ def main():
     while playlist_response.get('next') is not None:
         playlist_response = restapi.get_url(playlist_response.get('next'))
         playlist_tracks.extend(playlist_response['items'])
-
 
     process_new_playlists(playlist_tracks)
 
@@ -115,7 +115,6 @@ def execute_playlist(new_playlist, playlist_tracks):
     #for track in playlist_tracks:
     #    for new_playlist in new_playlists.playlists:
     #        apply_rule()
-
 
 
 def is_rule_applicable(rule):
