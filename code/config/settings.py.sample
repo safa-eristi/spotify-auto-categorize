@@ -1,0 +1,21 @@
+# -*- coding: utf-8 -*-
+
+INSTANCE_URL = 'https://accounts.spotify.com'
+API_URL = 'https://api.spotify.com'
+CLIENT_ID = '__PLACEHOLDER__'
+CLIENT_SECRET = '__PLACEHOLDER__'
+API_VERSION = 1
+
+REFRESH_TOKEN = '__PLACEHOLDER__'
+
+HOST = 'http://localhost:8002'
+CALLBACK_ENDPOINT = 'oauth_callback'
+
+CALLBACK_URL = '{host}/{endpoint}'.format(host=HOST, endpoint=CALLBACK_ENDPOINT)
+
+AUTHORIZATION_URL = '{instance_url}/authorize'.format(instance_url=INSTANCE_URL)
+TOKEN_URL = '{instance_url}/api/token'.format(instance_url=INSTANCE_URL)
+REVOKE_URL = '{instance_url}/api/token/revoke'.format(instance_url=INSTANCE_URL)
+
+RULE_FIELD_SEPERATOR = '#'
+LOG_TO_FILE = False
