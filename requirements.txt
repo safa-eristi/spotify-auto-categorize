@@ -35,3 +35,4 @@ urllib3==1.25.8
 webencodings==0.5.1
 Werkzeug==1.0.1
 yarl==1.4.2
+schema==0.7.2
