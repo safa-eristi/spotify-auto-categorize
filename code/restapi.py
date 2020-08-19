@@ -125,15 +125,19 @@ def get_playlist_tracks(playlist_id):
 
 
 @decorators.json_or_default(default=None)
+def get_audio_features(track_ids):
+    return make_rest_request('GET', 'audio-features', params={'ids': ','.join(track_ids)})
+
+
+@decorators.json_or_default(default=None)
 def create_playlist(user_id, payload):
     return make_rest_request('POST', 'users/{user_id}/playlists'.format(user_id=user_id), json=payload)
 
 
 @decorators.json_or_default(default=None)
-def add_track_to_playlist(playlist_id, song_list):
+def add_tracks_to_playlist(playlist_id, song_list):
     payload = {
-        'uris': song_list
+        'uris': ['spotify:track:{}'.format(song_id) for song_id in song_list]
     }
 
-    print(payload)
     return make_rest_request('POST', 'playlists/{playlist_id}/tracks'.format(playlist_id=playlist_id), json=payload)
