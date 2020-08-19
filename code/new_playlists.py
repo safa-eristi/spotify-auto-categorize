@@ -1,52 +1,52 @@
 playlists = [
-    # {
-    #    'name': 'Seventies',
-    #    'playlist_id': None,
-    #    'rules': [
-    #        {
-    #             'rule_type': 'track_data', # or 'audio_features'
-    #             'comparison': 'startswith',
-    #             'field': 'album#release_date',
-    #             'value': '197'
-    #        }
-    #    ]
-    # },
-    # {
-    #    'name': 'Eighties',
-    #    'playlist_id': None,
-    #    'rules': [
-    #        {
-    #             'rule_type': 'track_data',
-    #             'comparison': 'startswith',
-    #             'field': 'album#release_date',
-    #             'value': '198'
-    #        }
-    #    ]
-    # },
-    # {
-    #    'name': 'Nineties',
-    #    'playlist_id': None,
-    #    'rules': [
-    #        {
-    #             'rule_type': 'track_data',
-    #             'comparison': 'startswith',
-    #             'field': 'album#release_date',
-    #             'value': '199'
-    #        }
-    #    ]
-    # },
-    # {
-    #    'name': 'Oldies',
-    #    'playlist_id': None,
-    #    'rules': [
-    #        {
-    #             'rule_type': 'track_data',
-    #             'comparison': 'startswith',
-    #             'field': 'album#release_date',
-    #             'value': '19'
-    #        }
-    #    ]
-    # },
+    {
+       'name': 'Seventies',
+       'playlist_id': None,
+       'rules': [
+           {
+                'rule_type': 'track_data', # or 'audio_features'
+                'comparison': 'startswith',
+                'field': 'track#album#release_date',
+                'value': '197'
+           }
+       ]
+    },
+    {
+       'name': 'Eighties',
+       'playlist_id': None,
+       'rules': [
+           {
+                'rule_type': 'track_data',
+                'comparison': 'startswith',
+                'field': 'track#album#release_date',
+                'value': '198'
+           }
+       ]
+    },
+    {
+       'name': 'Nineties',
+       'playlist_id': None,
+       'rules': [
+           {
+                'rule_type': 'track_data',
+                'comparison': 'startswith',
+                'field': 'track#album#release_date',
+                'value': '199'
+           }
+       ]
+    },
+    {
+       'name': 'Oldies',
+       'playlist_id': None,
+       'rules': [
+           {
+                'rule_type': 'track_data',
+                'comparison': 'startswith',
+                'field': 'track#album#release_date',
+                'value': '19'
+           }
+       ]
+    },
     {
        'name': 'Major Tracks',
        'playlist_id': None,
@@ -70,5 +70,48 @@ playlists = [
                 'value': 0
            }
        ]
+    },
+    {
+       'name': 'Instrumental Tracks',
+       'playlist_id': None,
+       'rules': [
+           {
+                'rule_type': 'audio_features',
+                'comparison': 'greaterthan',
+                'field': 'instrumentalness',
+                'value': 0.5
+           }
+       ]
+    },
+    {
+       'name': 'Acoustic Tracks',
+       'playlist_id': None,
+       'rules': [
+           {
+                'rule_type': 'audio_features',
+                'comparison': 'greaterthan',
+                'field': 'acousticness',
+                'value': 0.8
+           }
+       ]
+    },
+    {
+       'name': 'High Tempo Tracks',
+       'playlist_id': None,
+       'rules': [
+           {
+                'rule_type': 'audio_features',
+                'comparison': 'greaterthan',
+                'field': 'tempo',
+                'value': 120
+           },
+           {
+                 'rule_type': 'audio_features',
+                 'comparison': 'greaterthan',
+                 'field': 'energy',
+                 'value': 0.7
+            }
+       ]
     }
 ]
+    

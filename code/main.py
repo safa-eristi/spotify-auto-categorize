@@ -22,6 +22,8 @@ COMPARISON_NOTEQUAL = 'notequals'
 COMPARISON_STARTSWITH = 'startswith'
 COMPARISON_ENDSWITH = 'endswith'
 COMPARISON_CONTAINS = 'contains'
+COMPARISON_GREATER_THAN = 'greaterthan'
+COMPARISON_LESS_THAN = 'lessthan'
 COMPARISON_IN = 'in'
 
 RULE_TYPE_TRACK_DATA = 'track_data'
@@ -124,10 +126,10 @@ def apply_rules(track, rules):
         field_value = item
         for item_field in item_fields:
             field_value = field_value.get(item_field)
-            rule_execution_result = apply_rule(rule.get('comparison'), field_value, rule.get('value'))
-
-            if rule_execution_result is False:
-                return False
+        
+        rule_execution_result = apply_rule(rule.get('comparison'), field_value, rule.get('value'))
+        if rule_execution_result is False:
+            return False
                 
     return True
 
@@ -152,6 +154,12 @@ def apply_rule(comparison, field_value, value):
     if comparison == COMPARISON_IN:
         return field_value in value
 
+    if comparison == COMPARISON_GREATER_THAN:
+        return field_value > value
+
+    if comparison == COMPARISON_LESS_THAN:
+        return field_value < value
+
     logger.log('unidentified rule.comparison: {}'.format(comparison))
     return False
 
@@ -173,7 +181,7 @@ def run():
     users_playlists = restapi.get_playlists()
     for item in users_playlists['items']:
         if item['name'] in [playlist.get('name') for playlist in new_playlists.playlists]:
-            print('playlist with name: {} already exists, please remove it and run the script again'.format(item['name']))
+            logger.log('playlist with name: {} already exists, please remove it and run the script again'.format(item['name']))
             return
 
     ###  Get all songs and audio features from the source playlist ###
