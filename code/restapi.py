@@ -120,6 +120,11 @@ def get_playlists():
 
 
 @decorators.json_or_default(default=None)
+def get_playlist(playlist_id):
+    return make_rest_request('GET', 'playlists/{}'.format(playlist_id))
+
+
+@decorators.json_or_default(default=None)
 def get_playlist_tracks(playlist_id):
     return make_rest_request('GET', 'playlists/{}/tracks'.format(playlist_id))
 
@@ -141,3 +146,4 @@ def add_tracks_to_playlist(playlist_id, song_list):
     }
 
     return make_rest_request('POST', 'playlists/{playlist_id}/tracks'.format(playlist_id=playlist_id), json=payload)
+
