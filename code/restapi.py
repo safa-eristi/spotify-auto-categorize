@@ -147,3 +147,7 @@ def add_tracks_to_playlist(playlist_id, song_list):
 
     return make_rest_request('POST', 'playlists/{playlist_id}/tracks'.format(playlist_id=playlist_id), json=payload)
 
+
+@decorators.json_or_default(default=None)
+def get_all_tracks():
+    return make_rest_request('GET', 'me/tracks')

@@ -1,7 +1,6 @@
 playlists = [
     {
        'name': 'Seventies',
-       'playlist_id': None,
        'rules': [
            {
                 'rule_type': 'track_data', # or 'audio_features'
@@ -13,7 +12,6 @@ playlists = [
     },
     {
        'name': 'Eighties',
-       'playlist_id': None,
        'rules': [
            {
                 'rule_type': 'track_data',
@@ -25,7 +23,6 @@ playlists = [
     },
     {
        'name': 'Nineties',
-       'playlist_id': None,
        'rules': [
            {
                 'rule_type': 'track_data',
@@ -37,7 +34,6 @@ playlists = [
     },
     {
        'name': 'Oldies',
-       'playlist_id': None,
        'rules': [
            {
                 'rule_type': 'track_data',
@@ -47,71 +43,66 @@ playlists = [
            }
        ]
     },
-    {
-       'name': 'Major Tracks',
-       'playlist_id': None,
-       'rules': [
-           {
-                'rule_type': 'audio_features',
-                'comparison': 'equals',
-                'field': 'mode',
-                'value': 1
-           }
-       ]
-    },
-    {
-       'name': 'Minor Tracks',
-       'playlist_id': None,
-       'rules': [
-           {
-                'rule_type': 'audio_features',
-                'comparison': 'equals',
-                'field': 'mode',
-                'value': 0
-           }
-       ]
-    },
-    {
-       'name': 'Instrumental Tracks',
-       'playlist_id': None,
-       'rules': [
-           {
-                'rule_type': 'audio_features',
-                'comparison': 'greaterthan',
-                'field': 'instrumentalness',
-                'value': 0.5
-           }
-       ]
-    },
-    {
-       'name': 'Acoustic Tracks',
-       'playlist_id': None,
-       'rules': [
-           {
-                'rule_type': 'audio_features',
-                'comparison': 'greaterthan',
-                'field': 'acousticness',
-                'value': 0.8
-           }
-       ]
-    },
-    {
-       'name': 'High Tempo Tracks',
-       'playlist_id': None,
-       'rules': [
-           {
-                'rule_type': 'audio_features',
-                'comparison': 'greaterthan',
-                'field': 'tempo',
-                'value': 120
-           },
-           {
-                 'rule_type': 'audio_features',
-                 'comparison': 'greaterthan',
-                 'field': 'energy',
-                 'value': 0.7
-            }
-       ]
-    }
+      {
+         'name': 'Major Tracks',
+         'rules': [
+             {
+                  'rule_type': 'audio_features',
+                  'comparison': 'equals',
+                  'field': 'mode',
+                  'value': 1
+             }
+         ]
+      },
+      {
+         'name': 'Minor Tracks',
+         'rules': [
+             {
+                  'rule_type': 'audio_features',
+                  'comparison': 'equals',
+                  'field': 'mode',
+                  'value': 0
+             }
+         ]
+      },
+      {
+         'name': 'Instrumental Tracks',
+         'rules': [
+             {
+                  'rule_type': 'audio_features',
+                  'comparison': 'greaterthan',
+                  'field': 'instrumentalness',
+                  'value': 0.5
+             }
+         ]
+      },
+      {
+         'name': 'Acoustic Tracks',
+         'rules': [
+             {
+                  'rule_type': 'audio_features',
+                  'comparison': 'greaterthan',
+                  'field': 'acousticness',
+                  'value': 0.8
+             }
+         ]
+      },
+      {
+         'name': 'High Tempo Tracks',
+         'rules': [
+             {
+                  'rule_type': 'audio_features',
+                  'comparison': 'greaterthan',
+                  'field': 'tempo',
+                  'value': 120
+             },
+             {
+                   'rule_type': 'audio_features',
+                   'comparison': 'greaterthan',
+                   'field': 'energy',
+                   'value': 0.7
+              }
+         ]
+      }
 ]
     
