@@ -8,13 +8,16 @@ import os
 import re
 
 from schema import Schema, And, Use, Optional, SchemaError
+from PyInquirer import prompt
+from pprint import pprint
+
+
 
 import config.settings
 import logger
 import restapi
+import playlist
 import new_playlists
-
-SOURCE_LIST_NAME = 'Liked'
 
 # used when processing rule triggers
 COMPARISON_EQUAL = 'equals'
@@ -29,9 +32,9 @@ COMPARISON_IN = 'in'
 RULE_TYPE_TRACK_DATA = 'track_data'
 RULE_TYPE_AUDIO_FEATURES = 'audio_features'
 
+TEMP_PLAYLIST_NAME = 'Temp For Script'
+
 PLAYLIST_SCHEMA = Schema({
-    'name': And(Use(str)),
-    'playlist_id': And(lambda n: n is None),
     'name': And(Use(str)),
     'rules': [{
         'rule_type': And(Use(str), lambda n: n == RULE_TYPE_TRACK_DATA or n == RULE_TYPE_AUDIO_FEATURES),
@@ -42,9 +45,9 @@ PLAYLIST_SCHEMA = Schema({
 })
 
 current_user = None
+temp_playlist = None
 
-
-def check_new_playlists():
+def validate_new_playlists():
     playlists = new_playlists.playlists
 
     for playlist in playlists:
@@ -56,6 +59,7 @@ def check_new_playlists():
 
     return True
 
+
 def check_structure(structure):
     try:
         PLAYLIST_SCHEMA.validate(structure)
@@ -65,38 +69,60 @@ def check_structure(structure):
         return False
 
 
-def execute_new_playlists(source_playlist_tracks):
+def execute_new_playlists(source_playlist_tracks, user_playlists):
     for new_playlist in new_playlists.playlists:
-        execute_playlist(new_playlist, source_playlist_tracks)
+        execute_playlist(new_playlist, source_playlist_tracks, user_playlists)
 
 
-def execute_playlist(new_playlist, source_playlist_tracks):
-    track_list = []
+def create_playlist(name):
     global current_user
-    logger.log('executing playlist {}'.format(new_playlist.get('name')))
-
     playlist = {
-        'name': new_playlist.get('name'),
+        'name': name,
         'public': False,
         'collaborative': False,
-        'description': '{} playlist'.format(new_playlist.get('name'))
+        'description': '{} playlist created automatically by this script: https://github.com/safa-eristi/spotify-auto-categorize'.format(name)
     }   
-    logger.log('creating playlist {}'.format(new_playlist.get('name')))
+    logger.log('creating playlist {}'.format(name))
 
-    
-    response = restapi.create_playlist(current_user.get('id'), playlist)
-    if response is None:
-        logger.log('playlist {} could not be created, please check the logs')
-        return False
+    return restapi.create_playlist(current_user.get('id'), playlist)
 
-    logger.log('playlist {} is created successfuly'.format(new_playlist.get('name')))
-    new_playlist['playlist_id'] = response.get('id')
+
+def execute_playlist(new_playlist, source_playlist_tracks, user_playlists):
+    global current_user
+    playlist_object = None
+    track_list = []
+
+    new_playlist_name = new_playlist.get('name')
+    logger.log('executing playlist {}'.format(new_playlist_name))
+
+    playlist_id = None
+    for user_playlist in user_playlists:
+        if new_playlist_name.lower() == user_playlist.name.lower():
+            logger.log('playlist with name {} already exists, updating..'.format(new_playlist_name))
+            playlist_id = user_playlist.id
+            user_playlist.expand()
+            playlist_object = user_playlist
+            break
+
+    if playlist_id is None:
+        create_playlist_response = create_playlist(new_playlist.get('name'))
+        if create_playlist_response is None:
+            logger.log('playlist {} could not be created, please check the logs')
+            return False
+
+        logger.log('playlist {} is created successfuly'.format(new_playlist.get('name')))
+        playlist_id = create_playlist_response.get('id')
+
 
     ## Execute the rules
     for track_id in source_playlist_tracks.keys():  
         rule_execution_result = apply_rules(source_playlist_tracks[track_id], new_playlist.get('rules'))
         if rule_execution_result is True:
-            track_list.append(track_id)
+            if playlist_object is not None:
+                if track_id not in user_playlist.tracks.keys():
+                    track_list.append(track_id)
+            else:
+                track_list.append(track_id)
 
     logger.log('{} songs will be added to the playlist {}'.format(len(track_list), new_playlist.get('name')))
 
@@ -104,11 +130,11 @@ def execute_playlist(new_playlist, source_playlist_tracks):
     for track_id in track_list:
         track_ids.append(track_id)
         if len(track_ids) == 100:
-            restapi.add_tracks_to_playlist(new_playlist['playlist_id'], track_ids)
+            restapi.add_tracks_to_playlist(playlist_id, track_ids)
             track_ids = []
 
     if len(track_ids) > 0:
-        restapi.add_tracks_to_playlist(new_playlist['playlist_id'], track_ids)
+        restapi.add_tracks_to_playlist(playlist_id, track_ids)
 
 
 def apply_rules(track, rules):
@@ -164,70 +190,101 @@ def apply_rule(comparison, field_value, value):
     return False
 
 
-def run():
-    logger.log('Start')
-    source_list = None
+def ask_preference():
+    preference_prompt = {
+        'type': 'list',
+        'name': 'preference',
+        'message': 'Do you want to choose a playlist to categorize or use your library',
+        'choices': ['Choose Playlist', 'Use Library']
+    }
+    answers = prompt(preference_prompt)
+    return answers['preference']
 
+
+def get_source_playlist(user_playlists):
+    global temp_playlist
+    preference = ask_preference()
+
+    if preference == 'Choose Playlist':
+        questions = [
+            {
+                'type': 'list',
+                'name': 'source_list_id',
+                'message': 'Please select the source playlit to work with?',
+                'choices': user_playlists
+                
+            }
+        ]
+
+        answer = prompt(questions)
+        return answer.get('source_list_id')
+
+    
+    create_playlist_response = create_playlist(TEMP_PLAYLIST_NAME)
+    playlist_id = create_playlist_response.get('id')
+    temp_playlist = playlist_id
+
+    all_track_ids = []
+    all_tracks_response = restapi.get_all_tracks()
+    for item in all_tracks_response.get('items'):
+        if item.get('track') == None:
+            continue
+
+        if item.get('track', {}).get('id', None) is not None:
+            all_track_ids.append(item.get('track', {}).get('id', None))
+    
+    while all_tracks_response.get('next') is not None:
+        all_tracks_response = restapi.get_url(all_tracks_response.get('next'))
+        for item in all_tracks_response.get('items'):
+            if item.get('track') == None:
+                continue
+
+            if item.get('track', {}).get('id', None) is not None:
+                all_track_ids.append(item.get('track', {}).get('id', None))
+
+    track_ids = []
+    for track_id in all_track_ids:
+        track_ids.append(track_id)
+        if len(track_ids) == 100:
+            restapi.add_tracks_to_playlist(playlist_id, track_ids)
+            track_ids = []
+
+    if len(track_ids) > 0:
+        restapi.add_tracks_to_playlist(playlist_id, track_ids)
+
+    return playlist_id
+
+
+def run():
     restapi.authenticate()
 
-    global current_user
-    current_user = restapi.get_user()
-
     # Check if new playlist have required keys and values
-    if check_new_playlists() is False:
+    if validate_new_playlists() is False:
         logger.log('at least one playlist have an error. please fix and run again')
         return
 
-    users_playlists = restapi.get_playlists()
-    for item in users_playlists['items']:
-        if item['name'] in [playlist.get('name') for playlist in new_playlists.playlists]:
-            logger.log('playlist with name: {} already exists, please remove it and run the script again'.format(item['name']))
-            return
+    # get current user
+    global current_user
+    current_user = restapi.get_user()
 
-    ###  Get all songs and audio features from the source playlist ###
-    for item in users_playlists['items']:
-        if item['name'] == SOURCE_LIST_NAME:
-            source_list = item
-            logger.log('found the source playlist: {}'.format(SOURCE_LIST_NAME))
-            break
+    # get user's playlists
+    user_playlists = []
+    get_playlists_response = restapi.get_playlists()
+    for playlist_entry in get_playlists_response.get('items'):
+        user_playlists.append(playlist.Playlist(playlist_entry, True))
 
-    if source_list is None:
-        logger.log('could not find the source playlist with name {} in playlists'.format(SOURCE_LIST_NAME))
-        return
+    source_playlist_id = get_source_playlist(user_playlists)
+    source_playlist = playlist.Playlist(restapi.get_playlist(source_playlist_id))
 
-    source_playlist_tracks = {}
-
-    playlist_response = restapi.get_playlist_tracks(source_list['id'])
-    for item in playlist_response.get('items'):
-        if item.get('track').get('id') is not None:
-            source_playlist_tracks[item.get('track').get('id')] = {'track_data': item}
-    
-    while playlist_response.get('next') is not None:
-        playlist_response = restapi.get_url(playlist_response.get('next'))
-        for item in playlist_response.get('items'):
-            if item.get('track').get('id') is not None:
-                source_playlist_tracks[item.get('track').get('id')] = {'track_data': item}
-
-    track_ids = []
-    for track_id in source_playlist_tracks.keys():
-        track_ids.append(track_id)
-        if len(track_ids) == 100:
-            playlist_response = restapi.get_audio_features(track_ids)
-            for audio_feature in playlist_response.get('audio_features'):
-                source_playlist_tracks[audio_feature.get('id')]['audio_features'] = audio_feature
-            track_ids = [] 
-
-    if len(track_ids) > 0:
-        playlist_response = restapi.get_audio_features(track_ids)
-        for audio_feature in playlist_response.get('audio_features'):
-            source_playlist_tracks[audio_feature.get('id')]['audio_features'] = audio_feature
-
-    ###  ###
-    execute_new_playlists(source_playlist_tracks)
+    execute_new_playlists(source_playlist.tracks, user_playlists)
+    if temp_playlist is not None:
+        logger.log('please remove the temporary playlist created by this script with name {}'.format(TEMP_PLAYLIST_NAME))
 
 
 if __name__ == '__main__':
+    logger.log('START')
     run()
+    logger.log('END')
 
 
 

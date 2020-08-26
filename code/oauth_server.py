@@ -21,7 +21,7 @@ def authorize():
         'client_secret': config.settings.CLIENT_SECRET,
         'redirect_uri': config.settings.CALLBACK_URL,
         'response_type': 'code',
-        'scope': 'playlist-modify-private playlist-modify-public user-library-modify playlist-read-private playlist-read-collaborative'
+        'scope': 'playlist-modify-private playlist-modify-public user-library-modify playlist-read-private playlist-read-collaborative user-library-read'
     }
 
     url_params = urlencode(params)
