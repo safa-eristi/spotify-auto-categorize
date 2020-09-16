@@ -103,10 +103,13 @@ ENV/
 ## project specific
 
 # settings
-code/config/settings.py
+api/config.py
 
 # config
 build/config.ini
 
 # submit script
 submit*.sh
+
+
+.idea

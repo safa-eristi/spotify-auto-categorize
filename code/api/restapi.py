@@ -13,6 +13,7 @@ import base64
 
 access_token = None
 
+
 def refresh_token():
     payload = {
         'grant_type': 'refresh_token',

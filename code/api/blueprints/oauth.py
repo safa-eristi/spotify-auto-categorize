@@ -1,20 +1,18 @@
-# -*- coding: utf-8 -*-
-
-import pprint
-import time
+import logging
+import requests
 from urllib.parse import urlencode
 
-import flask
-import requests
-
-import config.settings
+from flask import Blueprint, request, redirect, abort, jsonify
 
 
-app = flask.Flask(__name__)
-app.config['DEBUG'] = True
+from api import config
 
 
-@app.route('/authorize', methods=['GET', 'POST'])
+logger = logging.getLogger('flaskapp.blueprints.oauth')
+bp = Blueprint('oauth', __name__)
+
+
+@bp.route('/authorize', methods=['GET', 'POST'])
 def authorize():
     params = {
         'client_id': config.settings.CLIENT_ID,
@@ -25,24 +23,23 @@ def authorize():
     }
 
     url_params = urlencode(params)
-
     redirect_url = '{url}?{params}'.format(url=config.settings.AUTHORIZATION_URL, params=url_params)
 
-    return flask.redirect(redirect_url)
+    return redirect(redirect_url)
 
 
-@app.route('/oauth_callback', methods=['GET', 'POST'])
+@bp.route('/oauth_callback', methods=['GET', 'POST'])
 def oauth_callback():
-    print(flask.request.get_data())
-    print(flask.request.args.to_dict())
+    logger.debug(request.get_data())
+    logger.debug(request.args.to_dict())
 
-    authorization_code = flask.request.args.get('code')
+    authorization_code = request.args.get('code')
 
     if authorization_code is None:
-        print(u'unable to get "code" from callback')
-        return flask.abort(400)
+        logger.debug('unable to get "code" from callback')
+        return abort(400)
 
-    print(u'code: {}'.format(authorization_code))
+    logger.debug('code: {}'.format(authorization_code))
 
     headers = {
         'Accept': 'application/json',
@@ -66,8 +63,5 @@ def oauth_callback():
         'status_code':  r.status_code,
     }
 
-    return flask.jsonify(response)
+    return jsonify(response)
 
-
-if __name__ == '__main__':
-    app.run(port=8002, debug=True, threaded=False)

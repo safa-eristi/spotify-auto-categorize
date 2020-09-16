@@ -3,6 +3,7 @@
 import restapi
 import logger
 
+
 class Playlist:
     def __init__(self, playlist_item, is_simple=False):
         self.name = playlist_item.get('name')
@@ -16,20 +17,17 @@ class Playlist:
         if is_simple is False:
             self.expand()
 
-
     def __str__(self):
         return self.name
 
-
     def get(self, property_name, *args):
         return getattr(self, property_name, self.name)
-
 
     def expand(self):
         logger.log('expanding the playlist class {}'.format(self.name))
         get_playlist_tracks_response = restapi.get_playlist_tracks(self.value)
         for item in get_playlist_tracks_response.get('items'):
-            if item.get('track') == None:
+            if item.get('track') is None:
                 continue
 
             if item.get('track', {}).get('id', None) is not None:
@@ -38,7 +36,7 @@ class Playlist:
         while get_playlist_tracks_response.get('next') is not None:
             get_playlist_tracks_response = restapi.get_url(get_playlist_tracks_response.get('next'))
             for item in get_playlist_tracks_response.get('items'):
-                if item.get('track') == None:
+                if item.get('track') is None:
                     continue
 
                 if item.get('track').get('id') is not None:
