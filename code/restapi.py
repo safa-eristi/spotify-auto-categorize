@@ -150,4 +150,4 @@ def add_tracks_to_playlist(playlist_id, song_list):
 
 @decorators.json_or_default(default=None)
 def get_all_tracks():
-    return make_rest_request('GET', 'me/tracks')
+    return make_rest_request('GET', 'me/tracks', params={'limit': 50})

@@ -227,7 +227,7 @@ def get_source_playlist(user_playlists):
     all_track_ids = []
     all_tracks_response = restapi.get_all_tracks()
     for item in all_tracks_response.get('items'):
-        if item.get('track') == None:
+        if item.get('track') is None:
             continue
 
         if item.get('track', {}).get('id', None) is not None:
@@ -236,7 +236,7 @@ def get_source_playlist(user_playlists):
     while all_tracks_response.get('next') is not None:
         all_tracks_response = restapi.get_url(all_tracks_response.get('next'))
         for item in all_tracks_response.get('items'):
-            if item.get('track') == None:
+            if item.get('track') is None:
                 continue
 
             if item.get('track', {}).get('id', None) is not None:
