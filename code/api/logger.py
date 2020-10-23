@@ -2,14 +2,34 @@
 
 import codecs
 import datetime
-import os
-
-import config.settings
+import logging
+import sys
 
 
 TS = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
 LOGS_FOLDER = 'logs'
 LOG_FILE_NAME = 'logs/{ts}.log'.format(ts=TS)
+
+applog = logging.getLogger(__name__)
+level_name = 'DEBUG'
+level = logging.getLevelName(level_name)
+formatter = logging.Formatter(
+    '%(asctime)s | '
+    '%(process)d | '
+    '%(levelname)s | '
+    '%(pathname)s | '
+    '%(funcName)s | '
+    '%(lineno)d | '
+    '%(message)s'
+)
+
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(level)
+stream_handler.setFormatter(formatter)
+
+applog.addHandler(stream_handler)
+
+applog.setLevel(level)
 
 
 def log(text):
@@ -17,14 +37,3 @@ def log(text):
     log_text = '[{ts}] {text}'.format(ts=ts, text=text)
 
     print(log_text)
-    
-    if config.settings.LOG_TO_FILE:
-        if not os.path.exists(LOGS_FOLDER):
-            os.mkdir(LOGS_FOLDER)
-
-        with codecs.open(LOG_FILE_NAME, 'a', 'utf-8') as f:
-            f.write(log_text)
-            f.write('\n')
-
-
-
