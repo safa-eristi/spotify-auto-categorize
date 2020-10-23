@@ -112,3 +112,5 @@ build/config.ini
 submit*.sh
 
 config.py
+
+.idea/
