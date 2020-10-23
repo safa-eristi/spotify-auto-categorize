@@ -1,48 +1,47 @@
 # -*- coding: utf-8 -*-
 
-import pprint
-import time
+import logging
+import requests
 from urllib.parse import urlencode
 
+
 import flask
-import requests
-
-import config.settings
+from flask import current_app
 
 
-app = flask.Flask(__name__)
-app.config['DEBUG'] = True
+logger = logging.getLogger('flaskapp.blueprints.oauth')
+bp = flask.Blueprint('oauth', __name__)
 
 
-@app.route('/authorize', methods=['GET', 'POST'])
+@bp.route('/authorize', methods=['GET', 'POST'])
 def authorize():
     params = {
-        'client_id': config.settings.CLIENT_ID,
-        'client_secret': config.settings.CLIENT_SECRET,
-        'redirect_uri': config.settings.CALLBACK_URL,
+        'client_id': current_app.config['CLIENT_ID'],
+        'client_secret': current_app.config['CLIENT_SECRET'],
+        'redirect_uri': current_app.config['CALLBACK_URL'],
         'response_type': 'code',
         'scope': 'playlist-modify-private playlist-modify-public user-library-modify playlist-read-private playlist-read-collaborative user-library-read'
     }
-
+    print(current_app.config['CALLBACK_URL'])
     url_params = urlencode(params)
 
-    redirect_url = '{url}?{params}'.format(url=config.settings.AUTHORIZATION_URL, params=url_params)
+    redirect_url = '{url}?{params}'.format(url=current_app.config['AUTHORIZATION_URL'], params=url_params)
 
     return flask.redirect(redirect_url)
 
 
-@app.route('/oauth_callback', methods=['GET', 'POST'])
-def oauth_callback():
+@bp.route('/callback', methods=['GET', 'POST'])
+def callback():
     print(flask.request.get_data())
     print(flask.request.args.to_dict())
 
     authorization_code = flask.request.args.get('code')
 
     if authorization_code is None:
-        print(u'unable to get "code" from callback')
+        print('unable to get "code" from callback')
         return flask.abort(400)
 
-    print(u'code: {}'.format(authorization_code))
+    print('code: {}'.format(authorization_code))
 
     headers = {
         'Accept': 'application/json',
@@ -51,15 +50,15 @@ def oauth_callback():
     }
 
     params = {
-        'client_id': config.settings.CLIENT_ID,
-        'client_secret': config.settings.CLIENT_SECRET,
-        'redirect_uri': config.settings.CALLBACK_URL,
+        'client_id': current_app.config['CLIENT_ID'],
+        'client_secret': current_app.config['CLIENT_SECRET'],
+        'redirect_uri': current_app.config['CALLBACK_URL'],
         'code': authorization_code,
         'grant_type': 'authorization_code',
         'response_type': 'code',
     }
 
-    r = requests.post(config.settings.TOKEN_URL, params=params, headers=headers)
+    r = requests.post(current_app.config['TOKEN_URL'], params=params, headers=headers)
 
     response = {
         'json': r.json(),
@@ -67,7 +66,3 @@ def oauth_callback():
     }
 
     return flask.jsonify(response)
-
-
-if __name__ == '__main__':
-    app.run(port=8002, debug=True, threaded=False)

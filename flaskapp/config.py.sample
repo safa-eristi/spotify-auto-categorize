@@ -1,0 +1,45 @@
+import os
+from typing import List, Type
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+
+class BaseConfig:
+    CONFIG_NAME = "base"
+    DEBUG = False
+    LOG_LEVEL = 'DEBUG'
+    INSTANCE_URL = 'https://accounts.spotify.com'
+    API_URL = 'https://api.spotify.com'
+    CLIENT_ID = '__PLACEHOLDER__'
+    CLIENT_SECRET = '__PLACEHOLDER__'
+
+
+class DevelopmentConfig(BaseConfig):
+    CONFIG_NAME = "dev"
+    SECRET_KEY = os.getenv(
+        "DEV_SECRET_KEY", "DEV SECRET"
+    )
+    DEBUG = True
+    TESTING = False
+
+
+class TestingConfig(BaseConfig):
+    CONFIG_NAME = "test"
+    SECRET_KEY = os.getenv("TEST_SECRET_KEY", "TEST SECRET")
+    DEBUG = True
+    TESTING = True
+
+
+class ProductionConfig(BaseConfig):
+    CONFIG_NAME = "prod"
+    SECRET_KEY = os.getenv("PROD_SECRET_KEY", "PROD SECRET")
+    DEBUG = False
+    TESTING = False
+
+
+EXPORT_CONFIGS: List[Type[BaseConfig]] = [
+    DevelopmentConfig,
+    TestingConfig,
+    ProductionConfig,
+]
+config_by_name = {cfg.CONFIG_NAME: cfg for cfg in EXPORT_CONFIGS}

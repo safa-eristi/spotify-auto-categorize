@@ -13,6 +13,7 @@ import base64
 
 access_token = None
 
+
 def refresh_token():
     payload = {
         'grant_type': 'refresh_token',
@@ -21,7 +22,7 @@ def refresh_token():
 
     auth_str = bytes('{}:{}'.format(config.settings.CLIENT_ID, config.settings.CLIENT_SECRET), 'utf-8')
     b64_auth_str = base64.b64encode(auth_str).decode('utf-8')
-    headers={'Authorization': 'Basic {encoded}'.format(encoded=b64_auth_str)}
+    headers = {'Authorization': 'Basic {encoded}'.format(encoded=b64_auth_str)}
 
     return requests.post('{host}/api/token'.format(host=config.settings.INSTANCE_URL), data=payload, headers=headers).json()
 

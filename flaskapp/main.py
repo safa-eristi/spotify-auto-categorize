@@ -1,23 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import base64
-import codecs
-import csv
-import json
-import os
-import re
-
 from schema import Schema, And, Use, Optional, SchemaError
 from PyInquirer import prompt
-from pprint import pprint
 
 
-
-import config.settings
 import logger
 import restapi
 import playlist
 import new_playlists
+
+from flask import current_app
 
 # used when processing rule triggers
 COMPARISON_EQUAL = 'equals'
@@ -46,6 +38,7 @@ PLAYLIST_SCHEMA = Schema({
 
 current_user = None
 temp_playlist = None
+
 
 def validate_new_playlists():
     playlists = new_playlists.playlists
@@ -76,11 +69,12 @@ def execute_new_playlists(source_playlist_tracks, user_playlists):
 
 def create_playlist(name):
     global current_user
+
     playlist = {
         'name': name,
         'public': False,
         'collaborative': False,
-        'description': '{} playlist created automatically by this script: https://github.com/safa-eristi/spotify-auto-categorize'.format(name)
+        'description': f'{name} created automatically by the script: https://github.com/safa-eristi/spotify-auto-categorize'
     }   
     logger.log('creating playlist {}'.format(name))
 
@@ -93,12 +87,12 @@ def execute_playlist(new_playlist, source_playlist_tracks, user_playlists):
     track_list = []
 
     new_playlist_name = new_playlist.get('name')
-    logger.log('executing playlist {}'.format(new_playlist_name))
+    logger.log(f'executing playlist {new_playlist_name}')
 
     playlist_id = None
     for user_playlist in user_playlists:
         if new_playlist_name.lower() == user_playlist.name.lower():
-            logger.log('playlist with name {} already exists, updating..'.format(new_playlist_name))
+            logger.log(f'playlist with name {new_playlist_name} already exists, updating..')
             playlist_id = user_playlist.id
             user_playlist.expand()
             playlist_object = user_playlist
@@ -113,8 +107,7 @@ def execute_playlist(new_playlist, source_playlist_tracks, user_playlists):
         logger.log('playlist {} is created successfuly'.format(new_playlist.get('name')))
         playlist_id = create_playlist_response.get('id')
 
-
-    ## Execute the rules
+    # Execute the rules
     for track_id in source_playlist_tracks.keys():  
         rule_execution_result = apply_rules(source_playlist_tracks[track_id], new_playlist.get('rules'))
         if rule_execution_result is True:
@@ -147,7 +140,7 @@ def apply_rules(track, rules):
             item = None
             logger.log('this should not have happened')
 
-        item_fields = rule.get('field').split(config.settings.RULE_FIELD_SEPERATOR)
+        item_fields = rule.get('field').split(current_app.config['RULE_FIELD_SEPARATOR'])
 
         field_value = item
         for item_field in item_fields:
@@ -161,7 +154,7 @@ def apply_rules(track, rules):
 
 
 def apply_rule(comparison, field_value, value):
-    #print('comparison {} -> field_value {} -> value {}'.format(comparison, field_value, value))
+    # print('comparison {} -> field_value {} -> value {}'.format(comparison, field_value, value))
     if comparison == COMPARISON_EQUAL:
         return field_value == value
 
@@ -219,7 +212,6 @@ def get_source_playlist(user_playlists):
         answer = prompt(questions)
         return answer.get('source_list_id')
 
-    
     create_playlist_response = create_playlist(TEMP_PLAYLIST_NAME)
     playlist_id = create_playlist_response.get('id')
     temp_playlist = playlist_id
@@ -278,14 +270,4 @@ def run():
 
     execute_new_playlists(source_playlist.tracks, user_playlists)
     if temp_playlist is not None:
-        logger.log('please remove the temporary playlist created by this script with name {}'.format(TEMP_PLAYLIST_NAME))
-
-
-if __name__ == '__main__':
-    logger.log('START')
-    run()
-    logger.log('END')
-
-
-
-
+        logger.log(f'please remove the temporary playlist created by this script with name {TEMP_PLAYLIST_NAME}')

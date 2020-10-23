@@ -110,3 +110,5 @@ build/config.ini
 
 # submit script
 submit*.sh
+
+config.py
